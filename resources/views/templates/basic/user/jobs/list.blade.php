@@ -1,0 +1,156 @@
+@extends($activeTemplate . 'layouts.master')
+@section('content')
+<div class="d-flex justify-content-between align-items-center position-relative mb-4 flex-wrap gap-4">
+
+    <div class="d-flex align-items-start flex-wrap gap-2">
+        <a class="btn btn--outline-custom {{ menuActive('user.jobs.all') }}" aria-current="page" href="{{ route('user.jobs.all') }}">@lang('All')</a>
+        <a class="btn btn--outline-custom {{ menuActive('user.jobs.pending') }}" href="{{ route('user.jobs.pending') }}">@lang('Pending')</a>
+        <a class="btn btn--outline-custom {{ menuActive('user.jobs.approved') }}" href="{{ route('user.jobs.approved') }}">@lang('Approved')</a>
+        <a class="btn btn--outline-custom {{ menuActive('user.jobs.assigned') }}" href="{{ route('user.jobs.assigned') }}">@lang('Assigned')</a>
+        <a class="btn btn--outline-custom {{ menuActive('user.jobs.cancelled') }}" href="{{ route('user.jobs.cancelled') }}">@lang('Cancelled')</a>
+        <a class="btn btn--outline-custom {{ menuActive('user.jobs.closed') }}" href="{{ route('user.jobs.closed') }}">@lang('Closed')</a>
+    </div>
+    {{-- <form action="" class="service-search-form flex-fill">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control form--control" value="{{ request()->search }}" placeholder="@lang('Title / Category')">
+            <button class="input-group-text bg--base border-0 px-4 text-white"><i class="las la-search"></i></button>
+        </div>
+    </form> --}}
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <table class="table--responsive--lg table">
+            <thead>
+                <tr>
+                    <th>@lang('Job')</th>
+                    <th>@lang('Category | SubCategory')</th>
+                    <th>@lang('Type')</th>
+                    <th>@lang('Price')</th>
+                    <th>@lang('Status')</th>
+                    <th>@lang('Action')</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($jobs as $job)
+                <tr>
+                    <td data-label="@lang('Title')">
+                        {{ strLimit($job->name, 60) }}
+                    </td>
+
+                    <td data-label="@lang('Category | Subcategory')">
+                        <div>
+                            <span>{{strLimit(__(@$job->jobCategory->name), 20)}}</span><br>
+                            <span>{{strLimit(__(@$job->JobSubCategory->name), 20)}}</span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class=""><span>{{strLimit(__(@$job->job_type), 20)}}</span></div>
+                    </td>
+                    <td>
+                        <div class=""><span>{{number_format($job->price, 2, '.', ',')}}</span></div>
+                    </td>
+
+                    <td data-label="@lang('Status')">
+                        <div class="">
+                            @if($job->status == 0)
+                            <span class="badge badge--secondary">@lang('Pending')</span>
+                            @elseif($job->status == 1)
+                            <span class="badge badge--success">@lang('Approved')</span>
+                            @elseif($job->status == 2)
+                            <span class="badge badge--info">@lang('Assigned')</span>
+                            @elseif($job->status == 3)
+                            <span class="badge badge--primary">@lang('Inprogress')</span>
+                            @elseif($job->status == 4)
+                            <span class="badge badge--info">@lang('Job Done')</span>
+                            @elseif($job->status == 5)
+                            <span class="badge badge--danger">@lang('Canceled')</span>
+                            @elseif($job->status == 6)
+                            <span class="badge badge--secondary">@lang('Closed')</span>
+                            @elseif($job->status == 7)
+                            <span class="badge badge--success">@lang('Completed')</span>
+                            @endif
+                        </div>
+                    </td>
+
+                    <td data-label="@lang('Action')">
+                        <div class="d-flex flex-wrap gap-2 justify-content-end">
+                            @if($job->status == 0)
+                            <a href="{{ route('user.jobs.edit', $job->id) }}" class="btn btn--sm btn--outline-base @if ($job->status == 2) disabled @endif">
+                                <i class="la la-edit"></i> @lang('Edit')
+                            </a>
+                            @endif
+
+                            @if($job->status == 2 || $job->status == 3 || $job->status == 4 || $job->status == 7)
+                            <a href="{{ route('user.jobs.detail', $job->id) }}" class="btn btn--sm btn--outline-base">
+                                <i class="la la-eye"></i> @lang('Details')
+                            </a>
+                            @endif
+
+                            {{-- <a href="{{ route('user.jobs.orders', $job->id) }}" class="btn btn--sm btn--outline-info @if ($job->status != 1) disabled @endif">
+                                <i class="las la-list-ul"></i> @lang('Disable')
+                            </a> --}}
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td class="justify-content-center text-center" colspan="100%">
+                        <i class="la la-4x la-frown"></i>
+                        <br>
+                        {{ __($emptyMessage) }}
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+        {{ $jobs->links() }}
+    </div>
+</div>
+<div id="detailModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@lang('Reason of Rejection')</h5>
+                <span type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="las la-times"></i>
+                </span>
+            </div>
+            <div class="modal-body">
+                <p class="modal-detail"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<x-confirmation-modal></x-confirmation-modal>
+@endsection
+
+@push('style')
+<style>
+    .nav-link {
+        color: rgb(var(--base));
+    }
+
+    .nav-tabs .nav-link:focus,
+    .nav-tabs .nav-link:hover {
+        border-color: rgb(var(--base)) rgb(var(--base)) rgb(var(--base));
+        color: rgb(var(--base));
+        isolation: isolate;
+    }
+</style>
+@endpush
+
+@push('script')
+<script>
+    (function($) {
+            "use strict";
+            $('.detailBtn').on('click', function() {
+                var modal = $('#detailModal');
+                modal.find('.modal-detail').text($(this).data('admin_feedback'));
+                modal.modal('show');
+            });
+
+        })(jQuery);
+</script>
+@endpush
